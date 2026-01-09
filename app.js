@@ -4,11 +4,10 @@ const app = express()
 
 const PORT = process.env.PORT || 3000;
 const SOURCEGRAPH_BASE_URL = process.env.SOURCEGRAPH_BASE_URL || 'https://sourcegraph.com';
-const SOURCEGRAPH_API_KEY = process.env.SOURCEGRAPH_API_KEY || '';
-const SOURCEGRAPH_X_REQUESTED_WITH = "Sourcegraph-LLM-Proxy v1";
+const SOURCEGRAPH_API_TOKEN = process.env.SOURCEGRAPH_API_TOKEN || '';
+const SOURCEGRAPH_X_REQUESTED_WITH = "cody_oai_router v1";
 
-// const SOURCEGRAPH_API_URL = `${SOURCEGRAPH_BASE_URL}/.api/llm/chat/completions`;
-const SOURCEGRAPH_API_URL = "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions";
+const SOURCEGRAPH_API_URL = `${SOURCEGRAPH_BASE_URL}/.api/llm/chat/completions`;
 
 
 function systemPromptBuilder(content) {
@@ -67,7 +66,7 @@ app.post('/chat/completions', async (req, res) => {
     const headers = {
       'Content-Type': 'application/json',
       'x-requested-with': SOURCEGRAPH_X_REQUESTED_WITH,
-      'authorization': `Bearer ${SOURCEGRAPH_API_KEY}`,
+      'authorization': `Bearer ${SOURCEGRAPH_API_TOKEN}`,
       ...req.headers
     }
 
