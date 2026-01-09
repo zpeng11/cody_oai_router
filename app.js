@@ -1,3 +1,6 @@
+require('dotenv').config()
+const { Agent: HttpAgent } = require('http')
+const { Agent: HttpsAgent } = require('https')
 const express = require('express')
 const fetch = require('node-fetch')
 const app = express()
@@ -9,6 +12,10 @@ const SOURCEGRAPH_API_TOKEN = process.env.SOURCEGRAPH_API_TOKEN || '';
 const SOURCEGRAPH_X_REQUESTED_WITH = "cody_oai_router v1";
 
 const SOURCEGRAPH_API_URL = `${SOURCEGRAPH_BASE_URL}${SOURCEGRAPH_END_POINT}`;
+const SOURCEGRAPH_URL = new URL(SOURCEGRAPH_API_URL)
+const SOURCEGRAPH_AGENT = SOURCEGRAPH_URL.protocol === 'http:'
+  ? new HttpAgent({ keepAlive: true })
+  : new HttpsAgent({ keepAlive: true })
 // const SOURCEGRAPH_API_URL = "https://open.bigmodel.cn/api/coding/paas/v4/chat/completions";
 
 
@@ -60,23 +67,34 @@ function messageBodyTransform(body) {
   return transformed;
 }
 
+app.use((req, res, next) => {
+  const startedAt = Date.now()
+  res.on('finish', () => {
+    const duration = Date.now() - startedAt
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`)
+  })
+  next()
+})
+
 app.use(express.json({ limit: '100mb' }))
 
 app.post('/chat/completions', async (req, res) => {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 60_000)
+
   try {
     const headers = {
       'Content-Type': 'application/json',
       'x-requested-with': SOURCEGRAPH_X_REQUESTED_WITH,
-      'authorization': `Bearer ${SOURCEGRAPH_API_TOKEN}`,
-      ...req.headers
+      'authorization': `Bearer ${SOURCEGRAPH_API_TOKEN}`
     }
-
-    delete headers['host'];
 
     const response = await fetch(SOURCEGRAPH_API_URL, {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify(messageBodyTransform(req.body))
+      body: JSON.stringify(messageBodyTransform(req.body)),
+      agent: SOURCEGRAPH_AGENT,
+      signal: controller.signal
     })
 
     const contentType = response.headers.get('content-type') || 'application/json'
@@ -90,8 +108,15 @@ app.post('/chat/completions', async (req, res) => {
       res.send(body)
     }
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('Upstream request timed out')
+      res.status(504).json({ error: 'Upstream request timed out' })
+      return
+    }
     console.error(error)
     res.status(500).json({ error: 'Internal server error' })
+  } finally {
+    clearTimeout(timeoutId)
   }
 })
 
