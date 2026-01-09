@@ -7,12 +7,12 @@ A simple proxy server for Sourcegraph's chat API that can be used as a drop-in r
 ### Windows
 1. Double-click `cody-oai-router.exe`
 2. A console window will open showing the server status
-3. The server will start on `http://localhost:3000`
+3. The server will start on `http://127.0.0.1:3000`
 
 ### Linux
 1. Make the file executable: `chmod +x cody-oai-router-linux`
 2. Run the file: `./cody-oai-router-linux`
-3. The server will start on `http://localhost:3000`
+3. The server will start on `http://127.0.0.1:3000`
 
 ## Configuration
 
@@ -64,7 +64,7 @@ export SOURCEGRAPH_API_TOKEN="your_token_here"
 Once the server is running, it provides an OpenAI-compatible API endpoint:
 
 ```bash
-curl http://localhost:3000/chat/completions \
+curl http://127.0.0.1:3000/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
