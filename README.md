@@ -242,4 +242,6 @@ If you encounter issues:
 
 ## License
 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 This is a personal project for local use. Please refer to the Sourcegraph terms of service for API usage guidelines.
