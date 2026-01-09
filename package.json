@@ -7,7 +7,9 @@
     "start": "node app.js",
     "pkg:win": "pkg . --targets node18-win-x64 --output dist/cody-oai-router.exe",
     "pkg:linux": "pkg . --targets node18-linux-x64 --output dist/cody-oai-router-linux",
-    "build:all": "npm run pkg:win && npm run pkg:linux"
+    "pkg:macos-intel": "pkg . --targets node18-macos-x64 --output dist/cody-oai-router-macos-intel",
+    "pkg:macos-arm": "pkg . --targets node18-macos-arm64 --output dist/cody-oai-router-macos-arm64",
+    "build:all": "npm run pkg:win && npm run pkg:linux && npm run pkg:macos-intel && npm run pkg:macos-arm"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
@@ -19,6 +21,6 @@
   },
   "pkg": {
     "assets": [],
-    "targets": ["node18-win-x64", "node18-linux-x64"]
+    "targets": ["node18-win-x64", "node18-linux-x64", "node18-macos-x64", "node18-macos-arm64"]
   }
 }

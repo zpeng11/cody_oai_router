@@ -26,6 +26,15 @@ The proxy can be configured in two ways:
 ### Option 2: Using Environment Variables
 Set environment variables before running the executable:
 
+**Windows (System GUI):**
+1. Right-click "This PC" → "Properties"
+2. Click "Advanced system settings"
+3. Click "Environment Variables"
+4. Under "User variables" or "System variables", click "New"
+5. Add `SOURCEGRAPH_API_TOKEN` for token and `SOURCEGRAPH_BASE_URL` for enterprise url
+6. Click OK to save
+7. Restart the executable
+
 **Windows (Command Prompt):**
 ```cmd
 set SOURCEGRAPH_API_TOKEN=your_token_here
@@ -123,6 +132,92 @@ Example:
 - **Network**: Internet connection to reach Sourcegraph API
 - **RAM**: Minimal (typically < 50MB)
 - **Disk**: ~47MB for the executable
+
+## Building a Release (For Developers)
+
+If you want to build your own executable from the source code:
+
+### Prerequisites
+- Node.js 18 or later
+- npm or yarn
+
+### Build Steps
+
+1. Install dependencies:
+```bash
+npm install
+```
+
+2. Create a `.env` file with your configuration (see Configuration section above)
+
+3. Build for Windows:
+```bash
+npm run pkg:win
+```
+Output: `dist/cody-oai-router.exe`
+
+4. Build for Linux:
+```bash
+npm run pkg:linux
+```
+Output: `dist/cody-oai-router-linux`
+
+5. Build for both platforms:
+```bash
+npm run build:all
+```
+
+### How It Works
+
+The build process uses [pkg](https://github.com/vercel/pkg), which:
+- Bundles the Node.js runtime with your application
+- Packages all dependencies into a single executable
+- Produces standalone binaries that run without Node.js installed
+- Supports Windows, Linux, and macOS
+
+## Design Philosophy (The Simple Ideas Behind This Router)
+
+This router follows these core principles:
+
+### 1. Minimal Transformation
+Instead of building complex request/response transformations, this router only converts what's necessary:
+- `system` role → wrapped as `<SYSTEM_PROMPT>content</SYSTEM_PROMPT>` in a `user` message
+- `tool` role → wrapped as `<TOOL_RESULT>content</TOOL_RESULT>` in a `user` message
+- All other roles pass through unchanged
+
+This keeps it simple and predictable.
+
+### 2. Stateless Forwarding
+The router doesn't store any state between requests. Each request is independent, making it:
+- Easy to debug
+- No memory leaks
+- Can handle multiple simultaneous connections
+
+### 3. Performance Over Features
+Optimized for speed:
+- Connection pooling (reuses HTTP connections)
+- 60-second timeout prevents hanging
+- Only forwards necessary headers (reduces request size)
+- Simple logging without expensive operations
+
+### 4. Drop-in Compatibility
+Designed to work with existing OpenAI clients:
+- Same endpoint structure: `/chat/completions`
+- Same request/response format
+- Streaming and non-streaming both supported
+- Most tools and IDEs will work without modification
+
+### 5. Local-First Security
+- Binds to `127.0.0.1` by default (only accepts local connections)
+- Doesn't forward client headers to upstream (reduces attack surface)
+- API token stays on your machine
+- No external dependencies or cloud services
+
+### 6. Portable by Design
+- Single executable, no installation required
+- Works offline (once Sourcegraph is reachable)
+- Configuration via environment variables or `.env` file
+- No user interface needed—just run and forget
 
 ## Notes
 
