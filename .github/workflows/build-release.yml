@@ -48,9 +48,9 @@ jobs:
           elif [ "${{ matrix.target }}" == "node18-linux-x64" ]; then
             npm run pkg:linux
           elif [ "${{ matrix.target }}" == "node18-macos-x64" ]; then
-            pkg . --targets ${{ matrix.target }} --output dist/${{ matrix.output }}
+            npm run pkg:macos-intel
           else
-            pkg . --targets ${{ matrix.target }} --output dist/${{ matrix.output }}
+            npm run pkg:macos-arm
           fi
         shell: bash
 
